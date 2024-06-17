@@ -6,6 +6,7 @@ use App\Models\User;
 use App\Models\UserRole;
 use Illuminate\Contracts\Pagination\LengthAwarePaginator;
 use Illuminate\Database\Eloquent\Collection;
+use Illuminate\Support\Facades\DB;
 
 class UserService
 {
@@ -17,22 +18,32 @@ class UserService
      */
     public function store(mixed $data)
     {
-        $user = User::create([
-            'name' => $data['name'],
-            'email' => $data['email']
-        ]);
+        DB::beginTransaction();
 
-        foreach($data['role_id'] as $id)
-        {
-            $UserRoles[] = [
-                'user_id' => $user->id,
-                'role_id' => $id
-            ];
+        try {
+            $user = User::create([
+                'name' => $data['name'],
+                'email' => $data['email']
+            ]);
+
+            foreach($data['role_id'] as $id)
+            {
+                $UserRoles[] = [
+                    'user_id' => $user->id,
+                    'role_id' => $id
+                ];
+            }
+
+            UserRole::insert($UserRoles);
+
+            DB::commit();
+
+            return $user;
+
+        } catch (\Throwable $th) {
+            DB::rollBack();
         }
 
-        UserRole::insert($UserRoles);
-
-        return $user;
     }
 
     /**
