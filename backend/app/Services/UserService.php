@@ -16,7 +16,7 @@ class UserService
      * @param mixed $data
      * @return User
      */
-    public function store(mixed $data)
+    public function store(mixed $data): User
     {
         DB::beginTransaction();
 
